@@ -1,0 +1,45 @@
+version: '3.8'
+
+networks:
+  my_network:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.16.0.0/24
+
+services:
+  mongodb:
+    image: mongo:latest
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: edmon
+      MONGO_INITDB_DATABASE: mydb
+    networks:
+      my_network:
+        ipv4_address: 172.16.0.2
+    ports:
+      - "27017:27017"
+
+
+  react:
+    build: ./test1
+    image: edmonp173/project_app:react
+    networks:
+      my_network:
+        ipv4_address: 172.16.0.3
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+
+  backend:
+    build: ./fast_api
+    image: edmonp173/project_app:backend
+    networks:
+      my_network:
+        ipv4_address: 172.16.0.4
+    ports:
+      - "8000:8000"
+    depends_on:
+      - mongodb
