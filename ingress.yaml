@@ -1,0 +1,40 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: fastapi-ingress
+  namespace: app
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  rules:
+  - host: finalproject.local
+    http:
+      paths:
+      - path: /customers
+        pathType: Prefix
+        backend:
+          service:
+            name: python-service
+            port:
+              number: 8000
+      - path: /products
+        pathType: Prefix
+        backend:
+          service:
+            name: python-service
+            port:
+              number: 8000
+      - path: /input
+        pathType: Prefix
+        backend:
+          service:
+            name: python-service
+            port:
+              number: 8000
+      - path: /input_product
+        pathType: Prefix
+        backend:
+          service:
+            name: python-service
+            port:
+              number: 8000

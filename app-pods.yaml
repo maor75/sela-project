@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mongo-python
+  namespace: app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mongo-python
+  template:
+    metadata:
+      labels:
+        app: mongo-python
+    spec:
+      containers:
+      - name: mongodb
+        image: mongo:latest
+        ports:
+        - containerPort: 27017
+      - name: python-app
+        build: ./fast_api
+        image: edmonp173/project_app:backend
+        ports:
+        - containerPort: 8000
+        env:
+        - name: MONGO_URL
+          value: "mongodb://localhost:27017"
+
+---
+
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: react-app
+  namespace: app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: react-app
+  template:
+    metadata:
+      labels:
+        app: react-app
+    spec:
+      containers:
+      - name: react-app
+        build: ./test1
+        image: edmonp173/project_app:react
+        ports:
+        - containerPort: 3000
