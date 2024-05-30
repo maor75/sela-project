@@ -19,7 +19,7 @@ MONGO_DB_HOST = 'mongodb'
 MONGO_DB_PORT = 27017
 MONGO_DB_NAME = 'mydb'
 
-client = MongoClient(f"mongodb://{MONGO_DB_USERNAME}:{MONGO_DB_PASSWORD}@{MONGO_DB_HOST}:{MONGO_DB_PORT}")
+client = MongoClient(f"mongodb://{MONGO_DB_USERNAME}:{MONGO_DB_PASSWORD}@mongodb")
 db = client[MONGO_DB_NAME]
 
 class Customer(BaseModel):

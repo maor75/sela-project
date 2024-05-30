@@ -59,7 +59,7 @@ function InputForm() {
 
         <span>
           <input className={styles.balloon} id="mail" type="text" placeholder="leonard@secret.co.il"
-            value={formData.mail} 
+            value={formData.mail}
             onChange={(e) => setFormData({ ...formData, mail: e.target.value })}
           />
           <label htmlFor="mail">Mail:</label>
@@ -67,7 +67,7 @@ function InputForm() {
 
         <span>
           <input className={styles.balloon} id="phone" type="text" placeholder="Enter phone"
-          value={formData.phone} 
+          value={formData.phone}
           onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
             />
           <label htmlFor="phone">Phone:</label>
@@ -75,7 +75,7 @@ function InputForm() {
 
         <button className={`${styles.btn} ${styles.third}`} type="submit">Add product</button>
       </form>
-      
+
     </div>
   );
 }
