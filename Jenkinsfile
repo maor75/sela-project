@@ -57,31 +57,18 @@ pipeline {
             steps {
                 container('ez-docker-helm-build') {
                     script {
-                        withDockerRegistry(credentialsId: 'docker-hub') {
-                            // Build and Push Maven Docker image
-                            sh "docker compose build"
-                            sh "docker compose up"
-                            sh "docker push ${DOCKER_IMAGE}:react1"
-                            sh "docker push ${DOCKER_IMAGE}:backend"
-                        }
-                    }
-                }
-            }
-        }
-
-        stage('test all branch') {
-            when {
-                not {
-                    branch 'main'
-                }
-            }
-            steps {
-                container('ez-docker-helm-build') {
-                    script {
                         withDockerRegistry(credentialsId: 'dockerhub') {
                             // Build and Push Maven Docker image
-                            sh "docker compose build"
-                            sh "docker compose up"
+                            sh "docker build -t ${DOCKER_IMAGE}:${env.BUILD_NUMBER} ./test1"
+                            sh "docker build -t ${DOCKER_IMAGE}:react ./test1"
+                            sh "docker push ${DOCKER_IMAGE}:${env.BUILD_NUMBER}"
+                            sh "docker push ${DOCKER_IMAGE}:react1"
+
+                            // Build and Push FastAPI Docker image
+                            sh "docker build -t ${DOCKER_IMAGE}:${env.BUILD_NUMBER} ./fast_api"
+                            sh "docker build -t ${DOCKER_IMAGE}:fastapi ./fast_api"
+                            sh "docker push ${DOCKER_IMAGE}:${env.BUILD_NUMBER}"
+                            sh "docker push ${DOCKER_IMAGE}:Backend"
                         }
                     }
                 }
@@ -96,7 +83,7 @@ pipeline {
             }
             steps {
                 script {
-                    withCredentials([usernamePassword(credentialsId: 'edmon_git', usernameVariable: 'GITHUB_USER', passwordVariable: 'GITHUB_TOKEN')]) {
+                    withCredentials([usernamePassword(credentialsId: 'github', usernameVariable: 'GITHUB_USER', passwordVariable: 'GITHUB_TOKEN')]) {
                         sh """
                         curl -X POST -u ${GITHUB_USER}:${GITHUB_TOKEN} -d '{
                             "title": "Merge feature to main",
@@ -108,17 +95,8 @@ pipeline {
                 }
             }
         }
-
-        stage('Trigger next update pipeline') {
-            when {
-                branch 'main'
-            }
-            steps {
-                build job: 'update', parameters: [string(name: 'DOCKERTAG')]
-            }
-        }
     }
-    
+
    post {
     always {
       echo 'Pipeline post'
@@ -130,7 +108,7 @@ pipeline {
     failure {
         emailext body: 'The build failed. Please check the build logs for details.',
                  subject: "Build failed: ${env.BUILD_NUMBER}",
-                 to: 'avidanos75@gmail.com'
+                 to: 'edmonp173@gmail.com'
         }
     }
 }
