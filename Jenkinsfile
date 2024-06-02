@@ -59,25 +59,28 @@ pipeline {
                     script {
                         withDockerRegistry(credentialsId: 'docker-hub') {
                             // Build and Push Maven Docker image
-                            sh "docker compose build "
+                            sh "docker compose build"
                             sh "docker compose up"
                             sh "docker push ${DOCKER_IMAGE}:react1"
-                            sh "docker push ${docker_IMAGE}:backend"
+                            sh "docker push ${DOCKER_IMAGE}:backend"
                         }
                     }
                 }
             }
         }
+
         stage('test all branch') {
             when {
                 not {
                     branch 'main'
-                    steps {
+                }
+            }
+            steps {
                 container('ez-docker-helm-build') {
                     script {
                         withDockerRegistry(credentialsId: 'docker-hub') {
                             // Build and Push Maven Docker image
-                            sh "docker compose build "
+                            sh "docker compose build"
                             sh "docker compose up"
                         }
                     }
@@ -118,9 +121,11 @@ pipeline {
 
     post {
         failure {
-            emailext body: 'The build failed. Please check the build logs for details.',
-                     subject: "Build failed:",
-                     to: 'edmonp173@gmail.com'
+            emailext(
+                body: 'The build failed. Please check the build logs for details.',
+                subject: "Build failed:",
+                to: 'edmonp173@gmail.com'
+            )
         }
     }
 }
