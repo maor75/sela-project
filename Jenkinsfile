@@ -78,7 +78,7 @@ pipeline {
             steps {
                 container('ez-docker-helm-build') {
                     script {
-                        withDockerRegistry(credentialsId: 'docker-hub') {
+                        withDockerRegistry(credentialsId: 'dockerhub') {
                             // Build and Push Maven Docker image
                             sh "docker compose build"
                             sh "docker compose up"
@@ -118,3 +118,19 @@ pipeline {
             }
         }
     }
+    
+   post {
+    always {
+      echo 'Pipeline post'
+    }
+    success {
+      echo 'Pipeline succeeded!'
+    }
+    
+    failure {
+        emailext body: 'The build failed. Please check the build logs for details.',
+                 subject: "Build failed: ${env.BUILD_NUMBER}",
+                 to: 'avidanos75@gmail.com'
+        }
+    }
+}
