@@ -60,14 +60,12 @@ pipeline {
                         withDockerRegistry(credentialsId: '572e9b6d-3abc-4c15-ad0b-206d2db3ee7b') {
                             // Build and Push Maven Docker image
                             sh "docker build -t ${DOCKER_IMAGE}:${env.BUILD_NUMBER} ./test1"
-                            sh "docker build -t ${DOCKER_IMAGE}:react ./test1"
-                            sh "docker push ${DOCKER_IMAGE}:${env.BUILD_NUMBER}"
+                            sh "docker build -t ${DOCKER_IMAGE}:react1 ./test1"
                             sh "docker push ${DOCKER_IMAGE}:react1"
 
                             // Build and Push FastAPI Docker image
                             sh "docker build -t ${DOCKER_IMAGE}:${env.BUILD_NUMBER} ./fast_api"
-                            sh "docker build -t ${DOCKER_IMAGE}:fastapi ./fast_api"
-                            sh "docker push ${DOCKER_IMAGE}:${env.BUILD_NUMBER}"
+                            sh "docker build -t ${DOCKER_IMAGE}:backend ./fast_api"
                             sh "docker push ${DOCKER_IMAGE}:backend"
                         }
                     }
@@ -97,18 +95,22 @@ pipeline {
         }
     }
 
-   post {
+  post {
     always {
-      echo 'Pipeline post'
+        echo 'Pipeline post'
     }
     success {
-      echo 'Pipeline succeeded!'
+        echo 'Pipeline succeeded!'
     }
-    
     failure {
-        emailext body: 'The build failed. Please check the build logs for details.',
-                 subject: "Build failed: ${env.BUILD_NUMBER}",
-                 to: 'edmonp173@gmail.com'
-        }
+        emailext (
+            body: """
+            <p>Build failed in Jenkins pipeline.</p>
+            <p>Please check the build logs for details: <a href="${env.BUILD_URL}">${env.JOB_NAME} #${env.BUILD_NUMBER}</a></p>
+            """,
+            mimeType: 'text/html',
+            subject: "Build failed: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+            to: 'edmonp173@gmail.com'
+        )
     }
 }
