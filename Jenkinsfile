@@ -14,11 +14,11 @@ pipeline {
               - name: mongodb
                 image: mongo:latest
                 env:
-                - name: POSTGRES_USER
+                - name: MONGO_USER
                   value: "mongo"
-                - name: POSTGRES_PASSWORD
+                - name: MONGO_PASSWORD
                   value: "mongo"
-                - name: POSTGRES_DB
+                - name: MONGO_DB
                   value: "mydb"
                 - name: HOST
                   value: "localhost"
@@ -27,6 +27,32 @@ pipeline {
                 imagePullPolicy: Always
                 securityContext:
                   privileged: true
+              - name: jnlp
+                image: jenkins/inbound-agent:3248.v65ecb_254c298-2
+                env:
+                - name: JENKINS_SECRET
+                  value: "********"
+                - name: JENKINS_TUNNEL
+                  value: "jenkins-agent.default.svc.cluster.local:50000"
+                - name: JENKINS_AGENT_NAME
+                  value: "main-ci-main-12-5s1gr-3ps2c-hq0d3"
+                - name: REMOTING_OPTS
+                  value: "-noReconnectAfter 1d"
+                - name: JENKINS_NAME
+                  value: "main-ci-main-12-5s1gr-3ps2c-hq0d3"
+                - name: JENKINS_AGENT_WORKDIR
+                  value: "/home/jenkins/agent"
+                - name: JENKINS_URL
+                  value: "http://jenkins.default.svc.cluster.local:8080/"
+                volumeMounts:
+                - mountPath: "/home/jenkins/agent"
+                  name: "workspace-volume"
+                  readOnly: false
+              restartPolicy: Never
+              volumes:
+              - emptyDir:
+                  medium: ""
+                name: "workspace-volume"
             '''
         }
     }
@@ -57,7 +83,7 @@ pipeline {
             steps {
                 container('ez-docker-helm-build') {
                     script {
-                        withDockerRegistry(credentialsId: 'dockerhub') {
+                        withDockerRegistry(credentialsId: '572e9b6d-3abc-4c15-ad0b-206d2db3ee7b') {
                             // Build and Push Maven Docker image
                             sh "docker build -t ${DOCKER_IMAGE}:${env.BUILD_NUMBER} ./test1"
                             sh "docker build -t ${DOCKER_IMAGE}:react ./test1"
@@ -83,7 +109,7 @@ pipeline {
             }
             steps {
                 script {
-                    withCredentials([usernamePassword(credentialsId: 'github', usernameVariable: 'GITHUB_USER', passwordVariable: 'GITHUB_TOKEN')]) {
+                    withCredentials([usernamePassword(credentialsId: '8bbebc96-214c-4961-a35b-8c5448592373', usernameVariable: 'GITHUB_USER', passwordVariable: 'GITHUB_TOKEN')]) {
                         sh """
                         curl -X POST -u ${GITHUB_USER}:${GITHUB_TOKEN} -d '{
                             "title": "Merge feature to main",
