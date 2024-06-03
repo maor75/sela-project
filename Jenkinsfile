@@ -60,38 +60,17 @@ pipeline {
                         withDockerRegistry(credentialsId: '572e9b6d-3abc-4c15-ad0b-206d2db3ee7b') {
                             // Build and Push Maven Docker image
                             sh "docker build -t ${DOCKER_IMAGE}:react1 ./test1"
+                            sh "docker build -t ${DOCKER_IMAGE}:backend ./fast_api"
                             sh "docker push ${DOCKER_IMAGE}:react1"
-
-                            // Build and Push FastAPI Docker image
-                            sh "docker build -t ${FASTAPI_IMAGE}:backend ./fast_api"
-                            sh "docker push ${FASTAPI_IMAGE}:backend"
+                            sh "docker push ${DOCKER_IMAGE}:backend"
+                            
                         }
                     }
                 }
             }
         }
 
-        stage('merge request') {
-            when {
-                not {
-                    branch 'main'
-                }
-            }
-            steps {
-                script {
-                    withCredentials([usernamePassword(credentialsId: '8bbebc96-214c-4961-a35b-8c5448592373', usernameVariable: 'GITHUB_USER', passwordVariable: 'GITHUB_TOKEN')]) {
-                        sh """
-                        curl -X POST -u ${GITHUB_USER}:${GITHUB_TOKEN} -d '{
-                            "title": "Merge feature to main",
-                            "head": "feature",
-                            "base": "main"
-                        }' https://api.github.com/repos/learn11/sela-project/pulls
-                        """
-                    }
-                }
-            }
-        }
-    }
+      
 
    post {
     always {
