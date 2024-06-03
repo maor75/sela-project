@@ -14,11 +14,11 @@ pipeline {
               - name: mongodb
                 image: mongo:latest
                 env:
-                - name: MONGO_USER
+                - name: POSTGRES_USER
                   value: "mongo"
-                - name: MONGO_PASSWORD
+                - name: POSTGRES_PASSWORD
                   value: "mongo"
-                - name: MONGO_DB
+                - name: POSTGRES_DB
                   value: "mydb"
                 - name: HOST
                   value: "localhost"
@@ -27,32 +27,6 @@ pipeline {
                 imagePullPolicy: Always
                 securityContext:
                   privileged: true
-              - name: jnlp
-                image: jenkins/inbound-agent:3248.v65ecb_254c298-2
-                env:
-                - name: JENKINS_SECRET
-                  value: "********"
-                - name: JENKINS_TUNNEL
-                  value: "jenkins-agent.default.svc.cluster.local:50000"
-                - name: JENKINS_AGENT_NAME
-                  value: "main-ci-main-12-5s1gr-3ps2c-hq0d3"
-                - name: REMOTING_OPTS
-                  value: "-noReconnectAfter 1d"
-                - name: JENKINS_NAME
-                  value: "main-ci-main-12-5s1gr-3ps2c-hq0d3"
-                - name: JENKINS_AGENT_WORKDIR
-                  value: "/home/jenkins/agent"
-                - name: JENKINS_URL
-                  value: "http://jenkins.default.svc.cluster.local:8080/"
-                volumeMounts:
-                - mountPath: "/home/jenkins/agent"
-                  name: "workspace-volume"
-                  readOnly: false
-              restartPolicy: Never
-              volumes:
-              - emptyDir:
-                  medium: ""
-                name: "workspace-volume"
             '''
         }
     }
@@ -94,7 +68,7 @@ pipeline {
                             sh "docker build -t ${DOCKER_IMAGE}:${env.BUILD_NUMBER} ./fast_api"
                             sh "docker build -t ${DOCKER_IMAGE}:fastapi ./fast_api"
                             sh "docker push ${DOCKER_IMAGE}:${env.BUILD_NUMBER}"
-                            sh "docker push ${DOCKER_IMAGE}:Backend"
+                            sh "docker push ${DOCKER_IMAGE}:backend"
                         }
                     }
                 }
