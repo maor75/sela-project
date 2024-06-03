@@ -95,22 +95,22 @@ pipeline {
         }
     }
 
-  post {
-    always {
-        echo 'Pipeline post'
-    }
-    success {
-        echo 'Pipeline succeeded!'
-    }
-    failure {
-        emailext (
-            body: """
-            <p>Build failed in Jenkins pipeline.</p>
-            <p>Please check the build logs for details: <a href="${env.BUILD_URL}">${env.JOB_NAME} #${env.BUILD_NUMBER}</a></p>
-            """,
-            mimeType: 'text/html',
-            subject: "Build failed: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
-            to: 'edmonp173@gmail.com'
-        )
-    }
-}
+    post {
+      always {
+          echo 'Pipeline post'
+      }
+      success {
+          echo 'Pipeline succeeded!'
+      }
+      failure {
+          emailext (
+              body: """
+              <p>Build failed in Jenkins pipeline.</p>
+              <p>Please check the build logs for details: <a href="${env.BUILD_URL}">${env.JOB_NAME} #${env.BUILD_NUMBER}</a></p>
+              """,
+              mimeType: 'text/html',
+              subject: "Build failed: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+              to: 'edmonp173@gmail.com'
+          )
+      }
+  }
