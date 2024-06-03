@@ -14,11 +14,11 @@ pipeline {
               - name: mongodb
                 image: mongo:latest
                 env:
-                - name: POSTGRES_USER
+                - name: MONGO_INITDB_ROOT_USERNAME
                   value: "mongo"
-                - name: POSTGRES_PASSWORD
+                - name: MONGO_INITDB_ROOT_PASSWORD
                   value: "mongo"
-                - name: POSTGRES_DB
+                - name: MONGO_INITDB_DATABASE
                   value: "mydb"
                 - name: HOST
                   value: "localhost"
@@ -63,27 +63,26 @@ pipeline {
                             sh "docker build -t ${DOCKER_IMAGE}:backend ./fast_api"
                             sh "docker push ${DOCKER_IMAGE}:react1"
                             sh "docker push ${DOCKER_IMAGE}:backend"
-                            
                         }
                     }
                 }
             }
         }
-
-      
-
-   post {
-    always {
-      echo 'Pipeline post'
     }
-    success {
-      echo 'Pipeline succeeded!'
-    }
-    
-    failure {
-        emailext body: 'The build failed. Please check the build logs for details.',
-                 subject: "Build failed: ${env.BUILD_NUMBER}",
-                 to: 'edmonp173@gmail.com'
+
+    post {
+        always {
+            echo 'Pipeline post'
+        }
+        success {
+            echo 'Pipeline succeeded!'
+        }
+        failure {
+            emailext(
+                body: 'The build failed. Please check the build logs for details.',
+                subject: "Build failed: ${env.BUILD_NUMBER}",
+                to: 'edmonp173@gmail.com'
+            )
         }
     }
 }
