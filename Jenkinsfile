@@ -35,7 +35,7 @@ pipeline {
     }
 
     environment {
-        DOCKER_IMAGE = "edmonp173/project_app"
+        DOCKER_IMAGE = "edmonp173/project_app:backend"
     }
 
     stages {
@@ -50,7 +50,7 @@ pipeline {
                 container('ez-docker-helm-build') {
                     script {
                         // Build FastAPI Docker image
-                        sh "docker build -t ${DOCKER_IMAGE}:backend ./fast_api"
+                        sh "docker build -t ${DOCKER_IMAGE} ./fast_api"
                     }
                 }
             }
@@ -58,12 +58,10 @@ pipeline {
 
         stage('Run Tests') {
             steps {
-                container('python') {
+                container('ez-docker-helm-build') {
                     script {
-                        // Run the custom test script inside the Docker container
-                        sh """
-                        docker run --rm -v \$(pwd)/fast_api:/app -w /app ${DOCKER_IMAGE}:backend sh -c 'python config-test.py'
-                        """
+                        // Run the test script inside the Docker container
+                        sh "docker run --rm -v \$(pwd)/fast_api:/app -w /app ${DOCKER_IMAGE} python config-test.py"
                     }
                 }
             }
@@ -78,7 +76,7 @@ pipeline {
                     script {
                         withDockerRegistry(credentialsId: 'dockerhub') {
                             // Push FastAPI Docker image
-                            sh "docker push ${DOCKER_IMAGE}:backend"
+                            sh "docker push ${DOCKER_IMAGE}"
                         }
                     }
                 }
