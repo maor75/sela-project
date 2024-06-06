@@ -62,7 +62,7 @@ pipeline {
                 container('ez-docker-helm-build') {
                     script {
                         // Run the test script inside the Docker container
-                        sh "docker run --rm -v \$(pwd)/fast_api:/app -w /app ${DOCKER_IMAGE} python config-test.py"
+                        sh "docker run --rm -v \$(pwd)/fast_api:/app -w /app ${DOCKER_IMAGE}:backend python config-test.py"
                     }
                 }
             }
