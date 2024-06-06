@@ -35,7 +35,7 @@ pipeline {
     }
 
     environment {
-        DOCKER_IMAGE = "edmonp173/project_app:backend"
+        DOCKER_IMAGE = "edmonp173/project_app"
     }
 
     stages {
@@ -50,7 +50,8 @@ pipeline {
                 container('ez-docker-helm-build') {
                     script {
                         // Build FastAPI Docker image
-                        sh "docker build -t ${DOCKER_IMAGE} ./fast_api"
+                        sh "docker build -t ${DOCKER_IMAGE}:backend ./fast_api"
+                        sh "docker build -t ${DOCKER_IMAGE}:react1 ./test1"
                     }
                 }
             }
@@ -76,7 +77,8 @@ pipeline {
                     script {
                         withDockerRegistry(credentialsId: 'dockerhub') {
                             // Push FastAPI Docker image
-                            sh "docker push ${DOCKER_IMAGE}"
+                            sh "docker push ${DOCKER_IMAGE}:backend"
+                            sh "docker push ${DOCKER_IMAGE}:react1"
                         }
                     }
                 }
