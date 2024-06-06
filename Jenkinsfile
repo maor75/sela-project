@@ -57,7 +57,7 @@ pipeline {
             steps {
                 container('ez-docker-helm-build') {
                     script {
-                        withDockerRegistry(credentialsId: '572e9b6d-3abc-4c15-ad0b-206d2db3ee7b') {
+                        withDockerRegistry(credentialsId: 'dockerhub') {
                             // Build and Push Maven Docker image
                             sh "docker build -t ${DOCKER_IMAGE}:react1 ./test1"
                             sh "docker push ${DOCKER_IMAGE}:react1"

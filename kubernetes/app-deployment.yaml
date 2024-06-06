@@ -9,11 +9,26 @@ spec:
   resources:
     requests:
       storage: 1Gi
+  storageClassName: standard
+---
+# mongodb-pv.yaml
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: mongo-pv
+spec:
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: standard
+  hostPath:
+    path: "/data/pv-data/mongodb"
 ---
 # mongodb-deployment.yaml
 # mongodb-deployment.yaml
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
   name: mongo-deployment
 spec:
@@ -41,13 +56,14 @@ spec:
           value: "edmon"
         - name: MONGO_INITDB_DATABASE
           value: "mydb"
+        volumeMounts:
+        - name: mongodb-data
+          mountPath: /data/db
       volumes:
       - name: mongodb-data
         persistentVolumeClaim:
           claimName: mongodb-pvc
-
-
-
+        
 
 ---
 # mongodb-service.yaml
