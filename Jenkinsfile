@@ -20,8 +20,11 @@ pipeline {
                   value: "edmon"
                 - name: MONGO_INITDB_DATABASE
                   value: "mydb"
-                - name: HOST
-                  value: "localhost"
+              - name: python
+                image: python:3.9-slim
+                command:
+                - cat
+                tty: true
               - name: ez-docker-helm-build
                 image: ezezeasy/ez-docker-helm-build:1.41
                 imagePullPolicy: Always
@@ -42,15 +45,35 @@ pipeline {
             }
         }
 
-        stage('maven version') {
+        stage('Build Docker Image') {
             steps {
-                container('maven') {
-                    sh 'mvn -version'
+                container('ez-docker-helm-build') {
+                    script {
+                        // Build FastAPI Docker image
+                        sh "docker build -t ${DOCKER_IMAGE}:backend ./fast_api"
+                    }
                 }
             }
         }
 
-        stage('Build and Push Docker Images') {
+        stage('Run MongoDB Connection Test') {
+            steps {
+                container('python') {
+                    // Run the test file
+                    sh '''
+                    python config-test.py > output.log
+                    if grep -q "Failed" output.log; then
+                        echo "Test failed. Check logs for details."
+                        exit 1
+                    else
+                        echo "All tests passed."
+                    fi
+                    '''
+                }
+            }
+        }
+
+        stage('Push Docker Images') {
             when {
                 branch 'main'
             }
@@ -58,12 +81,7 @@ pipeline {
                 container('ez-docker-helm-build') {
                     script {
                         withDockerRegistry(credentialsId: 'dockerhub') {
-                            // Build and Push Maven Docker image
-                            sh "docker build -t ${DOCKER_IMAGE}:react1 ./test1"
-                            sh "docker push ${DOCKER_IMAGE}:react1"
-
-                            // Build and Push FastAPI Docker image
-                            sh "docker build -t ${DOCKER_IMAGE}:backend ./fast_api"
+                            // Push FastAPI Docker image
                             sh "docker push ${DOCKER_IMAGE}:backend"
                         }
                     }
