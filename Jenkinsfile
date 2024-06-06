@@ -56,19 +56,15 @@ pipeline {
             }
         }
 
-        stage('Run MongoDB Connection Test') {
+        stage('Run Tests') {
             steps {
                 container('python') {
-                    // Run the test file
-                    sh '''
-                    python config-test.py > output.log
-                    if grep -q "Failed" output.log; then
-                        echo "Test failed. Check logs for details."
-                        exit 1
-                    else
-                        echo "All tests passed."
-                    fi
-                    '''
+                    script {
+                        // Run the custom test script inside the Docker container
+                        sh """
+                        docker run --rm -v \$(pwd)/fast_api:/app -w /app ${DOCKER_IMAGE}:backend sh -c 'python config-test.py'
+                        """
+                    }
                 }
             }
         }
