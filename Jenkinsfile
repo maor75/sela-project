@@ -47,6 +47,10 @@ spec:
 """
         }
     }
+    environment {
+        DOCKER_IMAGE = "edmonp173/project_app"
+    }
+
 
     stages {
         stage('Checkout Code') {
@@ -76,13 +80,21 @@ spec:
         }
 
         stage('Build and Push Docker Images') {
+            when {
+                branch 'main'
+            }
             steps {
                 container('ez-docker-helm-build') {
                     script {
-                        // Assuming you have a Dockerfile in your repository
-                        sh 'docker build -t your-image-name .'
-                        sh 'docker login -u your-username -p your-password'
-                        sh 'docker push your-image-name'
+                        withDockerRegistry(credentialsId: 'dockerhub') {
+                            // Build and Push Maven Docker image
+                            sh "docker build -t ${DOCKER_IMAGE}:react1 ./test1"
+                            sh "docker push ${DOCKER_IMAGE}:react1"
+
+                            // Build and Push FastAPI Docker image
+                            sh "docker build -t ${DOCKER_IMAGE}:backend ./fast_api"
+                            sh "docker push ${DOCKER_IMAGE}:backend"
+                        }
                     }
                 }
             }
