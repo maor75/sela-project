@@ -20,11 +20,8 @@ pipeline {
                   value: "edmon"
                 - name: MONGO_INITDB_DATABASE
                   value: "mydb"
-              - name: python
-                image: python:3.9-slim
-                command:
-                - cat
-                tty: true
+                - name: HOST
+                  value: "localhost"
               - name: ez-docker-helm-build
                 image: ezezeasy/ez-docker-helm-build:1.41
                 imagePullPolicy: Always
@@ -45,30 +42,38 @@ pipeline {
             }
         }
 
-        stage('Build Docker Image') {
+        stage('Wait for MongoDB') {
             steps {
-                container('ez-docker-helm-build') {
+                container('maven') {
                     script {
-                        // Build FastAPI Docker image
-                        sh "docker build -t ${DOCKER_IMAGE}:backend ./fast_api"
-                        sh "docker build -t ${DOCKER_IMAGE}:react1 ./test1"
+                        def maxTries = 30
+                        def waitTime = 10
+                        for (int i = 0; i < maxTries; i++) {
+                            def mongoRunning = sh(script: 'nc -z localhost 27017', returnStatus: true) == 0
+                            if (mongoRunning) {
+                                echo 'MongoDB is running!'
+                                break
+                            }
+                            echo 'Waiting for MongoDB to start...'
+                            sleep waitTime
+                        }
+                        if (!mongoRunning) {
+                            error 'MongoDB did not start in time'
+                        }
                     }
                 }
             }
         }
 
-        stage('Run Tests') {
+        stage('maven version') {
             steps {
-                container('ez-docker-helm-build') {
-                    script {
-                        // Run the test script inside the Docker container
-                        sh "docker run --rm -v \$(pwd)/fast_api:/app -w /app ${DOCKER_IMAGE}:backend python config-test.py"
-                    }
+                container('maven') {
+                    sh 'mvn -version'
                 }
             }
         }
 
-        stage('Push Docker Images') {
+        stage('Build and Push Docker Images') {
             when {
                 branch 'main'
             }
@@ -76,9 +81,13 @@ pipeline {
                 container('ez-docker-helm-build') {
                     script {
                         withDockerRegistry(credentialsId: 'dockerhub') {
-                            // Push FastAPI Docker image
-                            sh "docker push ${DOCKER_IMAGE}:backend"
+                            // Build and Push Maven Docker image
+                            sh "docker build -t ${DOCKER_IMAGE}:react1 ./test1"
                             sh "docker push ${DOCKER_IMAGE}:react1"
+
+                            // Build and Push FastAPI Docker image
+                            sh "docker build -t ${DOCKER_IMAGE}:backend ./fast_api"
+                            sh "docker push ${DOCKER_IMAGE}:backend"
                         }
                     }
                 }
