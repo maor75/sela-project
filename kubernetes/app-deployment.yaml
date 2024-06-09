@@ -148,7 +148,7 @@ spec:
     spec:
       containers:
       - name: fastapi
-        image: edmonp173/project_app:backend
+        image: edmonp173/project_app:backend1
         ports:
         - containerPort: 8000
 
