@@ -76,6 +76,13 @@ pipeline {
         stage('Run Tests') {
             steps {
                 container('maven') {
+                    script {
+                        // Check if pom.xml exists in the workspace
+                        def pomExists = fileExists 'pom.xml'
+                        if (!pomExists) {
+                            error 'pom.xml file not found in the workspace'
+                        }
+                    }
                     sh 'mvn test'
                 }
             }
