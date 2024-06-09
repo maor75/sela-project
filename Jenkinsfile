@@ -10,11 +10,6 @@ metadata:
     jenkins/label: 'main-pipeline_main'
 spec:
   containers:
-    - name: maven
-      image: maven:alpine
-      command:
-        - cat
-      tty: true
     - name: python
       image: python:3.9-alpine
       command:
@@ -70,14 +65,11 @@ spec:
             }
         }
 
-        stage('Run Python Tests') {
+        stage('Run Tests') {
             steps {
                 container('python') {
                     script {
-                        if (fileExists('requirements.txt')) {
-                            sh 'pip install -r requirements.txt'
-                        }
-                        sh 'pytest'
+                        sh 'python3 config-test.py'
                     }
                 }
             }
