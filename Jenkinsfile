@@ -1,49 +1,29 @@
 pipeline {
     agent {
         kubernetes {
-            yaml """
-apiVersion: v1
-kind: Pod
-metadata:
-  labels:
-    jenkins/jenkins-jenkins-agent: 'true'
-    jenkins/label: 'main-pipeline_main'
-spec:
-  containers:
-    - name: python
-      image: python:3.9-alpine
-      command:
-        - cat
-      tty: true
-    - name: ez-docker-helm-build
-      image: ezezeasy/ez-docker-helm-build:1.41
-      imagePullPolicy: Always
-      securityContext:
-        privileged: true
-    - name: jnlp
-      image: jenkins/inbound-agent:3248.v65ecb_254c298-2
-      env:
-        - name: JENKINS_SECRET
-          value: '********'
-        - name: JENKINS_TUNNEL
-          value: 'jenkins-agent.jenkins.svc.cluster.local:50000'
-        - name: JENKINS_AGENT_NAME
-          value: 'main-pipeline-main'
-        - name: REMOTING_OPTS
-          value: '-noReconnectAfter 1d'
-        - name: JENKINS_NAME
-          value: 'main-pipeline-main'
-        - name: JENKINS_AGENT_WORKDIR
-          value: '/home/jenkins/agent'
-        - name: JENKINS_URL
-          value: 'http://jenkins.jenkins.svc.cluster.local:8080/'
-      resources:
-        requests:
-          memory: '256Mi'
-          cpu: '100m'
-  volumes:
-    - name: workspace-volume
-      emptyDir: {}
+            yaml '''
+            apiVersion: v1
+            kind: Pod
+            spec:
+              containers:
+              - name: maven
+                image: maven:alpine
+                command:
+                - cat
+                tty: true
+              - name: python
+                image: python:3.9-alpine
+                command:
+                - cat
+                tty: true
+              - name: ez-docker-helm-build
+                image: ezezeasy/ez-docker-helm-build:1.41
+                imagePullPolicy: Always
+                securityContext:
+                  privileged: true
+            '''
+        }
+    }
 """
         }
     }
