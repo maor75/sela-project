@@ -11,14 +11,7 @@ MONGO_DB_NAME = 'mydb'
 def test_mongodb_connection():
     # Initialize MongoDB client
     client = MongoClient(f"mongodb://{MONGO_DB_USERNAME}:{MONGO_DB_PASSWORD}@mongodb")
-    
-    # Verify connection
-    try:
-        client.admin.command('ping')
-        print("MongoDB connection successful.")
-    except ConnectionFailure:
-        print("MongoDB connection failed.")
-        return
+
 
     db = client[MONGO_DB_NAME]
 
