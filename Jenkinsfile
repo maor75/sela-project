@@ -20,11 +20,8 @@ pipeline {
                   value: "edmon"
                 - name: MONGO_INITDB_DATABASE
                   value: "mydb"
-              - name: python
-                image: python:3.9-slim
-                command:
-                - cat
-                tty: true
+                - name: HOST
+                  value: "localhost"
               - name: ez-docker-helm-build
                 image: ezezeasy/ez-docker-helm-build:1.41
                 imagePullPolicy: Always
@@ -45,35 +42,39 @@ pipeline {
             }
         }
 
-        stage('Build Docker Image') {
+        stage('Wait for MongoDB') {
             steps {
-                container('ez-docker-helm-build') {
+                container('mongodb') {
                     script {
-                        // Build FastAPI Docker image
-                        sh "docker build -t ${DOCKER_IMAGE}:backend ./fast_api"
+                        def maxTries = 30
+                        def waitTime = 10
+                        def mongoRunning = false
+                        for (int i = 0; i < maxTries; i++) {
+                            mongoRunning = sh(script: 'nc -z localhost 27017', returnStatus: true) == 0
+                            if (mongoRunning) {
+                                echo 'MongoDB is running!'
+                                break
+                            }
+                            echo 'Waiting for MongoDB to start...'
+                            sleep waitTime
+                        }
+                        if (!mongoRunning) {
+                            error 'MongoDB did not start in time'
+                        }
                     }
                 }
             }
         }
 
-        stage('Run MongoDB Connection Test') {
+        stage('maven version') {
             steps {
-                container('python') {
-                    // Run the test file
-                    sh '''
-                    python config-test.py > output.log
-                    if grep -q "Failed" output.log; then
-                        echo "Test failed. Check logs for details."
-                        exit 1
-                    else
-                        echo "All tests passed."
-                    fi
-                    '''
+                container('maven') {
+                    sh 'mvn -version'
                 }
             }
         }
 
-        stage('Push Docker Images') {
+        stage('Build and Push Docker Images') {
             when {
                 branch 'main'
             }
@@ -81,7 +82,12 @@ pipeline {
                 container('ez-docker-helm-build') {
                     script {
                         withDockerRegistry(credentialsId: 'dockerhub') {
-                            // Push FastAPI Docker image
+                            // Build and Push Maven Docker image
+                            sh "docker build -t ${DOCKER_IMAGE}:react1 ./test1"
+                            sh "docker push ${DOCKER_IMAGE}:react1"
+
+                            // Build and Push FastAPI Docker image
+                            sh "docker build -t ${DOCKER_IMAGE}:backend ./fast_api"
                             sh "docker push ${DOCKER_IMAGE}:backend"
                         }
                     }

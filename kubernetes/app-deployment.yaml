@@ -103,7 +103,7 @@ spec:
     spec:
       containers:
       - name: react-app
-        image: edmonp173/project_app:react1
+        image: edmonp173/project_app:react
         ports:
         - containerPort: 80
 

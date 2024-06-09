@@ -64,6 +64,22 @@ def create_product(products: list[Product]):
         return {"message": "Products created successfully."}
     except Exception as e:
         raise HTTPException(status_code=500, detail="Error creating products")
+    
+@app.post("/delete")
+def delete_customer(customer: Customer):
+    try:
+        db.customers.delete_one(customer.dict())
+        return {"message": "Customer delete successfully."}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Error delete customer")
+    
+@app.post("/update")
+def delete_customer(customer: Customer):
+    try:
+        db.customers.find_one_and_update(customer.dict())
+        return {"message": "Customer update successfully."}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Error delete customer")
 
 if __name__ == "__main__":
     import uvicorn
