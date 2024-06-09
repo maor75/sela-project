@@ -74,12 +74,31 @@ def delete_customer(customer: Customer):
         raise HTTPException(status_code=500, detail="Error delete customer")
     
 @app.post("/update")
-def delete_customer(customer: Customer):
+def update_customer(customer: Customer):
     try:
-        db.customers.find_one_and_update(customer.dict())
-        return {"message": "Customer update successfully."}
+        current_customer = db.customers.find_one({"mail": customer.mail})
+        if not current_customer:
+            raise HTTPException(status_code=404, detail="Customer not found")
+
+        # Build the update query based on provided data
+        update_data = {}
+        if customer.name != current_customer.get("name"):
+            update_data["name"] = customer.name
+        if customer.phone != current_customer.get("phone"):
+            update_data["phone"] = customer.phone
+        # If no changes, raise an exception or handle it accordingly
+        if not update_data:
+            return {"message": "No changes detected."}
+
+        result = db.customers.find_one_and_update(
+            {"mail": customer.mail},
+            {"$set": update_data},
+            return_document=True
+        )
+
+        return {"message": "Customer updated successfully.", "updated_customer": result}
     except Exception as e:
-        raise HTTPException(status_code=500, detail="Error delete customer")
+        raise HTTPException(status_code=500, detail=f"Error updating customer: {e}")
 
 if __name__ == "__main__":
     import uvicorn

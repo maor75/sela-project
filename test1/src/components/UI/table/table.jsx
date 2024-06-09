@@ -3,7 +3,8 @@ import React, { useState, useEffect } from 'react';
 
 function CustomerTable1({ FetchUrl }) {
   const [customers, setCustomers] = useState([]);
-  const [selectedRows, setSelectedRows] = useState(new Set());
+  const [editRowIndex, setEditRowIndex] = useState(null);
+  const [editFormData, setEditFormData] = useState({});
 
   useEffect(() => {
     fetch(FetchUrl)
@@ -12,58 +13,58 @@ function CustomerTable1({ FetchUrl }) {
       .catch(error => console.error('Error fetching customers:', error));
   }, [FetchUrl]);
 
-  const handleRowClick = (rowIndex) => {
-    setSelectedRows(prevSelectedRows => {
-      const newSelectedRows = new Set(prevSelectedRows);
-      if (newSelectedRows.has(rowIndex)) {
-        newSelectedRows.delete(rowIndex);
-      } else {
-        newSelectedRows.add(rowIndex);
-      }
-      return newSelectedRows;
+  const handleEditRow = (rowIndex) => {
+    setEditRowIndex(rowIndex);
+    setEditFormData(customers[rowIndex]);
+  };
+
+  const handleInputChange = (event) => {
+    const { name, value } = event.target;
+    setEditFormData({
+      ...editFormData,
+      [name]: value,
     });
   };
 
-  const handleDeleteRow = (rowIndex) => {
-    const customerToDelete = customers[rowIndex];
-    // Extract required data
-    const { name, mail, phone } = customerToDelete;
-    fetch('http://localhost:8000/delete', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ name, mail, phone }), // Send extracted data
-    })
-      .then(response => response.json())
-      .then(data => {
-        console.log('Success:', data);
-        // Optionally, update the state or UI as needed after deletion
-      })
-      .catch((error) => {
-        console.error('Error:', error);
-      });
-  };
-
-  const handleEditRow = (rowIndex) => {
-    const customerToEdit = customers[rowIndex];
-    // Extract required data
-    const { name, mail, phone } = customerToEdit;
+  const handleSubmitEdit = (rowIndex) => {
     fetch('http://localhost:8000/update', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ name, mail, phone }), // Send extracted data
+      body: JSON.stringify(editFormData),
     })
-      .then(response => response.json())
-      .then(data => {
-        console.log('Success:', data);
-        // Optionally, update the state or UI as needed after edit
-      })
-      .catch((error) => {
-        console.error('Error:', error);
-      });
+    .then(response => response.json())
+    .then(data => {
+      console.log('Success:', data);
+      const updatedCustomers = [...customers];
+      updatedCustomers[rowIndex] = editFormData;
+      setCustomers(updatedCustomers);
+      setEditRowIndex(null);
+    })
+    .catch((error) => {
+      console.error('Error:', error);
+    });
+  };
+
+  const handleDeleteRow = (rowIndex) => {
+    const personToDelete = customers[rowIndex];
+
+    fetch('http://localhost:8000/delete', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(personToDelete),
+    })
+    .then(response => response.json())
+    .then(data => {
+      console.log('Success:', data);
+      setCustomers(customers.filter((_, index) => index !== rowIndex));
+    })
+    .catch((error) => {
+      console.error('Error:', error);
+    });
   };
 
   return (
@@ -79,17 +80,30 @@ function CustomerTable1({ FetchUrl }) {
         </thead>
         <tbody>
           {customers.map((customer, rowIndex) => (
-            <tr
-              key={rowIndex}
-              className={selectedRows.has(rowIndex) ? cl.selectedRow : ''}
-              onClick={() => handleRowClick(rowIndex)}
-            >
-              {Object.values(customer).map((value, colIndex) => (
-                <td key={colIndex}>{value}</td>
+            <tr key={rowIndex}>
+              {Object.keys(customer).map((key) => (
+                <td key={key}>
+                  {editRowIndex === rowIndex ? (
+                    <input
+                      type="text"
+                      name={key}
+                      value={editFormData[key] || ''}
+                      onChange={handleInputChange}
+                    />
+                  ) : (
+                    customer[key]
+                  )}
+                </td>
               ))}
               <td>
-                <button onClick={() => handleDeleteRow(rowIndex)}>Delete</button>
-                <button onClick={() => handleEditRow(rowIndex)}>Edit</button>
+                {editRowIndex === rowIndex ? (
+                  <button onClick={() => handleSubmitEdit(rowIndex)}>Submit</button>
+                ) : (
+                  <>
+                    <button onClick={() => handleEditRow(rowIndex)}>Edit</button>
+                    <button onClick={() => handleDeleteRow(rowIndex)}>Delete</button>
+                  </>
+                )}
               </td>
             </tr>
           ))}
