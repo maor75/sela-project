@@ -24,18 +24,17 @@ pipeline {
             '''
         }
     }
-"""
-        }
-    }
+
     environment {
         DOCKER_IMAGE = "edmonp173/project_app"
     }
 
-
     stages {
         stage('Checkout Code') {
             steps {
-                checkout([$class: 'GitSCM', branches: [[name: '*/main']], userRemoteConfigs: [[url: 'https://github.com/learn11/sela-project.git']]])
+                script {
+                    checkout([$class: 'GitSCM', branches: [[name: '*/main']], userRemoteConfigs: [[url: 'https://github.com/learn11/sela-project.git']]])
+                }
             }
         }
 
