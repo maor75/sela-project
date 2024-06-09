@@ -11,17 +11,11 @@ pipeline {
                 command:
                 - cat
                 tty: true
-              - name: mongodb
-                image: mongo:latest
-                env:
-                - name: MONGO_INITDB_ROOT_USERNAME
-                  value: "root"
-                - name: MONGO_INITDB_ROOT_PASSWORD
-                  value: "edmon"
-                - name: MONGO_INITDB_DATABASE
-                  value: "mydb"
-                - name: HOST
-                  value: "localhost"
+              - name: python
+                image: python:3.9-alpine
+                command:
+                - cat
+                tty: true
               - name: ez-docker-helm-build
                 image: ezezeasy/ez-docker-helm-build:1.41
                 imagePullPolicy: Always
@@ -33,6 +27,11 @@ pipeline {
 
     environment {
         DOCKER_IMAGE = "edmonp173/project_app"
+        MONGO_HOST = "mongodb.default.svc.cluster.local" // Update this with your MongoDB service DNS
+        MONGO_PORT = "27017"
+        MONGO_INITDB_ROOT_USERNAME = "root"
+        MONGO_INITDB_ROOT_PASSWORD = "edmon"
+        MONGO_INITDB_DATABASE = "mydb"
     }
 
     stages {
@@ -44,13 +43,13 @@ pipeline {
 
         stage('Wait for MongoDB') {
             steps {
-                container('mongodb') {
+                container('maven') {
                     script {
                         def maxTries = 30
                         def waitTime = 10
                         def mongoRunning = false
                         for (int i = 0; i < maxTries; i++) {
-                            mongoRunning = sh(script: 'nc -z localhost 27017', returnStatus: true) == 0
+                            mongoRunning = sh(script: "nc -z ${env.MONGO_HOST} ${env.MONGO_PORT}", returnStatus: true) == 0
                             if (mongoRunning) {
                                 echo 'MongoDB is running!'
                                 break
@@ -70,6 +69,30 @@ pipeline {
             steps {
                 container('maven') {
                     sh 'mvn -version'
+                }
+            }
+        }
+
+        stage('Run Tests') {
+            steps {
+                container('maven') {
+                    sh 'mvn test'
+                }
+            }
+        }
+
+        stage('Run Python Test Script') {
+            steps {
+                container('python') {
+                    sh '''
+                    python config-test.py > output.log
+                    if grep -q "Failed" output.log; then
+                        echo "Test failed. Check logs for details."
+                        exit 1
+                    else
+                        echo "All tests passed."
+                    fi
+                    '''
                 }
             }
         }
