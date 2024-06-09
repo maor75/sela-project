@@ -48,12 +48,34 @@ pipeline {
             }
         }
 
-        stage('Run Tests') {
+        stage('Build and Run Python Container') {
             steps {
-                container('python') {
+                container('ez-docker-helm-build') {
                     script {
-                        sh 'python3 config-test.py'
+                        // Build Python Docker image
+                        sh "docker build -t ${DOCKER_IMAGE}:backend ./fast_api"
+
+                        // Run Python Docker container
+                        sh "docker run -d --name python-container ${DOCKER_IMAGE}:backend"
                     }
+                }
+            }
+        }
+
+        stage('Run Tests in Python Container') {
+            steps {
+                script {
+                    // Execute config-test.py script within the Python container
+                    sh "docker exec python-container python3 config-test.py > test_logs.txt"
+                }
+            }
+        }
+
+        stage('Echo Logs') {
+            steps {
+                script {
+                    // Echo the logs
+                    sh "cat test_logs.txt"
                 }
             }
         }
@@ -69,9 +91,6 @@ pipeline {
                             // Build and Push Maven Docker image
                             sh "docker build -t ${DOCKER_IMAGE}:react1 ./test1"
                             sh "docker push ${DOCKER_IMAGE}:react1"
-
-                            // Build and Push FastAPI Docker image
-                            sh "docker build -t ${DOCKER_IMAGE}:backend ./fast_api"
                             sh "docker push ${DOCKER_IMAGE}:backend"
                         }
                     }
