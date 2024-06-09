@@ -44,12 +44,13 @@ pipeline {
 
         stage('Wait for MongoDB') {
             steps {
-                container('maven') {
+                container('mongodb') {
                     script {
                         def maxTries = 30
                         def waitTime = 10
+                        def mongoRunning = false
                         for (int i = 0; i < maxTries; i++) {
-                            def mongoRunning = sh(script: 'nc -z localhost 27017', returnStatus: true) == 0
+                            mongoRunning = sh(script: 'nc -z localhost 27017', returnStatus: true) == 0
                             if (mongoRunning) {
                                 echo 'MongoDB is running!'
                                 break
