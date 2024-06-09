@@ -21,7 +21,7 @@ const Navbar = () => {
         <i className={[cl.nav__icon, "material-icons"].join(' ')}>devices</i>
         <span className={cl.nav__text}>הזמנות סחורה</span>
       </Link>
-      <a href="" className={cl.nav__link}>
+      <a href="/stocks" className={cl.nav__link}>
         <i className={[cl.nav__icon, "material-icons"].join(' ')}>lock</i>
         <span className={cl.nav__text}>מכירות</span>
       </a>

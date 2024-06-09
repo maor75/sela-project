@@ -105,3 +105,16 @@ h1 {
   .container td:nth-child(4),
   .container th:nth-child(4) { display: none; }
   }
+
+  .preview {
+    display: inline-block;
+    margin-left: 10px;
+    padding: 5px;
+    background-color: #f0f0f0;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+  }
+  .selectedRow {
+    background-color: #d3d3d3; /* Light grey background for selected rows */
+  }
+  

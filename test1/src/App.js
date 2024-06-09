@@ -4,6 +4,7 @@ import { BrowserRouter as Router, Route, Routes }
 import Home from './pages/home';
 import About from './pages/about';
 import Edmon from './pages/input';
+import Stock from './pages/stocks';
 import Navbar from './components/UI/navbar/navbar';
 
 
@@ -20,7 +21,11 @@ function App() {
             </Routes>
             <Routes>
             <Route path='/input' element={<Edmon/>}/>
-            </Routes><Navbar/>
+            </Routes>
+            <Routes>
+            <Route path='/stocks' element={<Stock/>}/>
+            </Routes>
+            <Navbar/>
     </Router>
     
   )
